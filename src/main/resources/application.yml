@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: taskflow-api
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskflow}
+    username: ${DB_USER:taskflow}
+    password: ${DB_PASSWORD:taskflow}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+
+taskflow:
+  jwt:
+    secret: ${JWT_SECRET:Y2hhbmdlLW1lLXRvLWEtMzItYnl0ZS1iYXNlNjQtc2VjcmV0LWtleSE=}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.taskflow: INFO
+    org.springframework.security: WARN

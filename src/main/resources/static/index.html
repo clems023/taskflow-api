@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TaskFlow API — API REST collaborative de gestion de tâches type Kanban, construite avec Spring Boot 3.">
+    <meta name="github-repository" content="__GITHUB_REPOSITORY__">
+    <title>TaskFlow API</title>
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --surface: #131a2b;
+            --surface-2: #1a2236;
+            --border: #243049;
+            --text: #e8edf7;
+            --muted: #8b9ab8;
+            --accent: #6c8cff;
+            --accent-2: #4fd1c5;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --radius: 14px;
+            --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(108, 140, 255, 0.18), transparent 35%),
+                radial-gradient(circle at 80% 0%, rgba(79, 209, 197, 0.12), transparent 30%),
+                radial-gradient(circle at 50% 100%, rgba(108, 140, 255, 0.08), transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            width: min(1120px, calc(100% - 2rem));
+            margin: 0 auto;
+        }
+
+        header {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid rgba(36, 48, 73, 0.7);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(11, 15, 25, 0.75);
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid;
+            place-items: center;
+            color: #0b0f19;
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hero {
+            padding: 4.5rem 0 3rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(19, 26, 43, 0.8);
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .badge-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            max-width: 14ch;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #b9c7ff 45%, var(--accent-2) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1.1rem;
+            max-width: 62ch;
+            margin-bottom: 2rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.15rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .btn:hover { transform: translateY(-1px); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #5574f5);
+            color: white;
+            box-shadow: 0 10px 30px rgba(108, 140, 255, 0.25);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat {
+            background: rgba(19, 26, 43, 0.75);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.1rem;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.35rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .stat span { color: var(--muted); font-size: 0.9rem; }
+
+        section {
+            padding: 2.5rem 0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .card-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 0.85rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            font-size: 1.1rem;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            padding: 0.45rem 0.75rem;
+            border-radius: 999px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: #c9d5ef;
+            font-size: 0.85rem;
+        }
+
+        .endpoints {
+            overflow: hidden;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+        }
+
+        th, td {
+            padding: 0.9rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            background: var(--surface-2);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .method {
+            display: inline-block;
+            min-width: 3.5rem;
+            text-align: center;
+            padding: 0.2rem 0.45rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .get { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .post { background: rgba(108, 140, 255, 0.15); color: var(--accent); }
+        .put { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .delete { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+            color: #c9d5ef;
+        }
+
+        .quickstart {
+            background: linear-gradient(180deg, rgba(19, 26, 43, 0.9), rgba(19, 26, 43, 0.6));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+
+        pre {
+            overflow-x: auto;
+            background: #0a0e17;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 0.75rem;
+            color: #b8c7e6;
+            font-size: 0.82rem;
+            line-height: 1.55;
+        }
+
+        footer {
+            margin-top: 2rem;
+            padding: 2rem 0 3rem;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover { color: var(--text); }
+
+        @media (max-width: 640px) {
+            .hero { padding-top: 2.5rem; }
+            th, td { padding: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <div class="brand">
+                <div class="brand-icon">TF</div>
+                <span>TaskFlow API</span>
+            </div>
+            <nav class="nav-links">
+                <a class="btn btn-secondary" id="link-github" href="https://github.com/__GITHUB_REPOSITORY__" data-pages-label="GitHub">GitHub</a>
+                <a class="btn btn-secondary" id="link-swagger" href="/swagger-ui/index.html" data-api-only data-pages-label="Code source">Swagger</a>
+                <a class="btn btn-secondary" id="link-health" href="/actuator/health" data-api-only data-pages-label="README">Health</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <div class="badge">
+                <span class="badge-dot" id="status-dot"></span>
+                <span id="status-text">Vérification du statut…</span>
+            </div>
+
+            <h1>Gérez vos tâches en <span class="gradient-text">collaboration</span></h1>
+
+            <p>
+                TaskFlow est une API REST de gestion de projets type Kanban.
+                Authentification JWT, colonnes personnalisables, tâches assignables et commentaires —
+                le tout embarqué avec Docker et documenté via OpenAPI.
+            </p>
+
+            <div class="actions">
+                <a class="btn btn-primary" id="link-explore" href="/swagger-ui/index.html" data-api-only data-pages-label="Voir sur GitHub →">Explorer l'API →</a>
+                <a class="btn btn-secondary" id="link-openapi" href="/v3/api-docs" data-api-only data-pages-label="README">OpenAPI JSON</a>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <strong>Spring Boot 3</strong>
+                    <span>Java 21</span>
+                </div>
+                <div class="stat">
+                    <strong>PostgreSQL</strong>
+                    <span>Flyway migrations</span>
+                </div>
+                <div class="stat">
+                    <strong>JWT</strong>
+                    <span>Spring Security</span>
+                </div>
+                <div class="stat">
+                    <strong>Docker</strong>
+                    <span>Multi-stage build</span>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Fonctionnalités</h2>
+            <p class="section-subtitle">Un backend prêt pour un portfolio GitHub ou une app frontend.</p>
+
+            <div class="grid-3">
+                <article class="card">
+                    <div class="card-icon">🔐</div>
+                    <h3>Authentification sécurisée</h3>
+                    <p>Inscription, connexion et tokens JWT pour protéger les endpoints métier.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">📋</div>
+                    <h3>Boards Kanban</h3>
+                    <p>Chaque projet est créé avec des colonnes To Do, In Progress et Done.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">✅</div>
+                    <h3>Gestion des tâches</h3>
+                    <p>Priorités, assignation, dates d'échéance et déplacement entre colonnes.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">💬</div>
+                    <h3>Commentaires</h3>
+                    <p>Discutez directement sur chaque tâche avec un historique chronologique.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">👥</div>
+                    <h3>Accès par projet</h3>
+                    <p>Seuls le propriétaire et les membres peuvent consulter un projet.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">📖</div>
+                    <h3>Documentation live</h3>
+                    <p>Swagger UI intégré pour tester l'API sans outil externe.</p>
+                </article>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Stack technique</h2>
+            <p class="section-subtitle">Bonnes pratiques backend modernes.</p>
+            <div class="tags">
+                <span class="tag">Spring Boot 3.4</span>
+                <span class="tag">Spring Data JPA</span>
+                <span class="tag">Spring Security</span>
+                <span class="tag">PostgreSQL 16</span>
+                <span class="tag">Flyway</span>
+                <span class="tag">Testcontainers</span>
+                <span class="tag">springdoc-openapi</span>
+                <span class="tag">Docker Compose</span>
+                <span class="tag">GitHub Actions</span>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Endpoints principaux</h2>
+            <p class="section-subtitle">Versionnés sous <code>/api/v1</code></p>
+
+            <div class="endpoints">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Méthode</th>
+                            <th>Route</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="method post">POST</span></td>
+                            <td><code>/api/v1/auth/register</code></td>
+                            <td>Créer un compte</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method post">POST</span></td>
+                            <td><code>/api/v1/auth/login</code></td>
+                            <td>Obtenir un token JWT</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method get">GET</span></td>
+                            <td><code>/api/v1/projects</code></td>
+                            <td>Lister mes projets</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method post">POST</span></td>
+                            <td><code>/api/v1/projects</code></td>
+                            <td>Créer un projet</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method get">GET</span></td>
+                            <td><code>/api/v1/projects/{id}/tasks</code></td>
+                            <td>Lister les tâches</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method post">POST</span></td>
+                            <td><code>/api/v1/projects/{id}/tasks/{taskId}/comments</code></td>
+                            <td>Ajouter un commentaire</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="demarrage-rapide">
+            <h2 class="section-title">Démarrage rapide</h2>
+            <p class="section-subtitle">Lancez l'API en une commande avec Docker.</p>
+
+            <div class="quickstart">
+                <p>Depuis la racine du projet :</p>
+                <pre>cp .env.example .env
+docker compose -f docker/docker-compose.yml up --build</pre>
+
+                <p style="margin-top: 1rem;">Puis inscrivez un utilisateur :</p>
+                <pre>curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"password123","name":"Alice"}'</pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-row">
+            <span>TaskFlow API · v0.1.0-SNAPSHOT</span>
+            <div class="footer-links">
+                <a id="footer-github" href="https://github.com/__GITHUB_REPOSITORY__">GitHub</a>
+                <a href="/swagger-ui/index.html" data-api-only data-pages-label="Documentation">Documentation</a>
+                <a href="/actuator/health" data-api-only data-pages-label="Démarrage">Santé</a>
+                <a href="/v3/api-docs" data-api-only data-pages-label="OpenAPI">OpenAPI</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const repoMeta = document.querySelector('meta[name="github-repository"]')?.content ?? '';
+        const repository = repoMeta.startsWith('__') ? '' : repoMeta;
+        const isGitHubPages = location.hostname.endsWith('github.io');
+
+        function setStatus(text, healthy) {
+            document.getElementById('status-text').textContent = text;
+            const color = healthy ? 'var(--success)' : '#fbbf24';
+            document.getElementById('status-dot').style.background = color;
+            document.getElementById('status-dot').style.boxShadow = `0 0 10px ${color}`;
+        }
+
+        function configureForGitHubPages() {
+            setStatus('Site de présentation en ligne', true);
+
+            if (repository) {
+                const repoUrl = `https://github.com/${repository}`;
+                document.getElementById('link-github')?.setAttribute('href', repoUrl);
+                document.getElementById('footer-github')?.setAttribute('href', repoUrl);
+            }
+
+            document.querySelectorAll('[data-api-only]').forEach(link => {
+                if (repository) {
+                    link.setAttribute('href', `https://github.com/${repository}#demarrage-rapide`);
+                }
+                if (link.dataset.pagesLabel) {
+                    link.textContent = link.dataset.pagesLabel;
+                }
+            });
+        }
+
+        if (isGitHubPages) {
+            configureForGitHubPages();
+        } else {
+            fetch('/actuator/health')
+                .then(r => r.json())
+                .then(data => {
+                    const up = data.status === 'UP';
+                    setStatus(up ? 'API opérationnelle' : 'API indisponible', up);
+                })
+                .catch(() => setStatus('API indisponible', false));
+        }
+    </script>
+</body>
+</html>
