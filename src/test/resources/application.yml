@@ -1,3 +1,4 @@
 taskflow:
   jwt:
     secret: dGVzdC1zZWNyZXQta2V5LXVzZWQtaW4tdGVzdHMtb25seQ==
+    expiration-ms: 86400000
