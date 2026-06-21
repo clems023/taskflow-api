@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskflow}
     username: ${DB_USER:taskflow}
-    password: ${DB_PASSWORD:taskflow}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 10
 
@@ -29,7 +29,7 @@ server:
 
 taskflow:
   jwt:
-    secret: ${JWT_SECRET:Y2hhbmdlLW1lLXRvLWEtMzItYnl0ZS1iYXNlNjQtc2VjcmV0LWtleSE=}
+    secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
 
 management:

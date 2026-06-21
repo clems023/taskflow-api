@@ -528,6 +528,8 @@
             <div class="quickstart">
                 <p>Depuis la racine du projet :</p>
                 <pre>cp .env.example .env
+# Renseigner DB_PASSWORD et JWT_SECRET dans .env
+# JWT_SECRET : openssl rand -base64 32
 docker compose -f docker/docker-compose.yml up --build</pre>
 
                 <p style="margin-top: 1rem;">Puis inscrivez un utilisateur :</p>
